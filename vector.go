@@ -54,12 +54,12 @@ func getMaxComponentCount(vectors ...Vector) int {
 	return componentsCount
 }
 
-// Sum an abitrary number of vectors
+// Sum an abitrary number of vectors each with an arbitrary number of components
 func Sum(vectors ...Vector) Vector {
 	components := make([]float64, getMaxComponentCount(vectors...))
 	for i := range components {
 		for _, v := range vectors {
-			if component, err := v.At(i); err != nil {
+			if component, err := v.At(i); err == nil {
 				components[i] += component
 			}
 		}
@@ -67,12 +67,14 @@ func Sum(vectors ...Vector) Vector {
 	return NewVector(components...)
 }
 
-// Subract an abitrary number of vectors
-func Subract(vectors ...Vector) Vector {
+// Subtract an abitrary number of vectors, each with an arbitrary number of components
+func Subtract(vectors ...Vector) Vector {
 	components := make([]float64, getMaxComponentCount(vectors...))
 	for i := range components {
-		for _, v := range vectors {
-			if component, err := v.At(i); err != nil {
+		// get the first vectors i component, if any (defaults to 0)
+		components[i], _ = vectors[0].At(i)
+		for _, v := range vectors[1:] {
+			if component, err := v.At(i); err == nil {
 				components[i] -= component
 			}
 		}
@@ -95,9 +97,9 @@ func Scale(v Vector, scalar float64) Vector {
 func DotProduct(vectors ...Vector) (float64, error) {
 	var sumOfProducts float64
 	for i := 0; i < getMaxComponentCount(vectors...); i++ {
-		var productOfComponents float64
+		var productOfComponents float64 = 1
 		for _, v := range vectors {
-			if component, err := v.At(i); err != nil {
+			if component, err := v.At(i); err == nil {
 				productOfComponents *= component
 			} else {
 				return 0, err
@@ -118,7 +120,7 @@ func CrossProduct(a Vector, b Vector) (Vector, error) {
 	if !is3DVector(a) || !is3DVector(b) {
 		return nil, ErrVectorNot3D
 	}
-	// set up values for the matrix
+	// set up values for the matrix calculation
 	a1, _ := a.At(0)
 	a2, _ := a.At(1)
 	a3, _ := a.At(2)
